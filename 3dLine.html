@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.92/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.92/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="cesiumContainer"></div>
+    <script>
+        // Your access token can be found at: https://cesium.com/ion/tokens.
+        // Replace `your_access_token` with your Cesium ion access token.
+
+        // Cesium.Ion.defaultAccessToken = 'your_access_token';
+
+        // Initialize the Cesium Viewer in the HTML element with the `cesiumContainer` ID.
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: Cesium.createWorldTerrain()
+        });
+
+        var bingStyle = [
+            Cesium.BingMapsStyle.AERIAL_WITH_LABELS,
+            Cesium.BingMapsStyle.COLLINS_BART,
+            Cesium.BingMapsStyle.CANVAS_GRAY,
+            Cesium.BingMapsStyle.CANVAS_LIGHT,
+            Cesium.BingMapsStyle.CANVAS_DARK,
+            Cesium.BingMapsStyle.ORDNANCE_SURVEY,
+            Cesium.BingMapsStyle.ROAD,
+            Cesium.BingMapsStyle.AERIAL,
+        ];
+        var bingMapProvider = new Cesium.BingMapsImageryProvider({
+            url: "https://dev.virtualearth.net",
+            key: "AmXdbd8UeUJtaRSn7yVwyXgQlBBUqliLbHpgn2c76DfuHwAXfRrgS5qwfHU6Rhm8",
+            mapStyle: bingStyle[7],
+        });
+        viewer.imageryLayers.addImageryProvider(bingMapProvider);
+
+        $.ajax({
+            url: 'trans_final_map_with_dem.csv',
+            dataType: 'text',
+        }).done(successFunction);
+
+        // const polylines = new Cesium.PolylineCollection();
+        var groundPolylineGeometryInstances = [];
+        function successFunction(data) {
+            var allRows = data.split(/\r?\n|\r/);
+            for (let i = 0; i < allRows.length - 1; i = i + 2) {
+                var rowCell1 = allRows[i].split(',');
+                var rowCell2 = allRows[i + 1].split(',');
+
+                    viewer.entities.add({
+                        polyline: {
+                            positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+                                rowCell1[0], rowCell1[1],rowCell1[2],
+                                rowCell2[0], rowCell2[1],rowCell2[2]
+                            ]),
+                            width: 4.0,
+                            material: Cesium.Color.ORANGE,
+                            // clampToGround: true
+                        }
+                    })
+                }
+        }
+
+        // Fly the camera to Changsha at the given longitude, latitude, and height.
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(112.9448, 28.1708, 1200),
+            orientation: {
+                heading: Cesium.Math.toRadians(0.0),
+                pitch: Cesium.Math.toRadians(-15.0),
+            }
+        });
+
+    </script>
+    </div>
+</body>
+
+</html>
